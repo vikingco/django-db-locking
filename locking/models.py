@@ -47,16 +47,6 @@ class LockManager(models.Manager):
                 result.append(l.id)
         return self.filter(id__in=result)
 
-    # TODO assert that only the locker can unlock it
-    #def release_lock(self, obj):
-    #    '''Release the lock on the object'''
-    #    qs = self.filter(content_type=ContentType.objects.get_for_model(obj), object_id=obj.id)
-    #    if qs.count() == 0:
-    #        raise NotLocked()
-
-    #    # remove the lock
-    #    qs.delete()
-
 class Lock(models.Model):
     locked_object = models.CharField(max_length=255, verbose_name=_('locked object'), unique=True)
     created_on = models.DateTimeField(auto_now_add=True, verbose_name=_('created on'), db_index=True)
