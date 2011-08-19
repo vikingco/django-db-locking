@@ -1,0 +1,37 @@
+# Translations from City Live i18n database
+# Generated: 2011-03-29 11:05:26.438838
+#, fuzzy
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: models.py:61
+msgid "locked object"
+msgstr "gelockt object"
+
+#: models.py:62
+msgid "created on"
+msgstr "aangemaakt op"
+
+#: models.py:63
+msgid "Maximum lock age"
+msgstr "Maximum lock age"
+
+#: models.py:63
+msgid "The age of a lock before it can be overwritten. 0 means indefinitely."
+msgstr "De age van een lock voordat ie overschreven kan worden. 0 betekent onbeperkt."
+
+#: models.py:68
+msgid "Lock"
+msgstr "Lock"
+
+#: models.py:69
+msgid "Locks"
+msgstr "Locks"
+
+#: models.py:75
+msgid "Lock exists on %(object)s since %(creation_date)s"
+msgstr "Lock bestaat op %(object)s sinds %(creation_date)s"
+
