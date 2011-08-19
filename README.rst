@@ -24,5 +24,7 @@ yourself, you can do that to::
 
 Wishlist
 --------
-- Add lock time-out (try to aquire a lock for up to a given TIME_OUT)
+- Add lock time-out (try to aquire a lock for up to a given TIME_OUT), like
+  `lockfile's <http://packages.python.org/lockfile/>`_ `FileLock.aquire
+  <http://packages.python.org/lockfile/lockfile.html#lockfile.FileLock.acquire>`_
 - Global locks (for instance on a whole Model not just an object)
