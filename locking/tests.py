@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
 from locking.exceptions import *
-from locking.models import Lock
+from locking.models import Lock, _get_lock_name
 
 class LockTest(TestCase):
     def setUp(self):
@@ -47,23 +47,19 @@ class LockTest(TestCase):
     def test_model(self):
         '''Test the model'''
         l = Lock.objects.acquire_lock(self.user, max_age=10)
-        self.assertEquals(l.content_type, ContentType.objects.get_for_model(self.user))
-        self.assertEquals(l.object_id, 1)
-        self.assertEquals(l.locked_object, self.user)
+        self.assertTrue(l.locked_object.endswith('%d' % self.user.id))
+        self.assertEquals(l.locked_object, _get_lock_name(self.user))
         self.assertTrue(l.created_on)
         self.assertEquals(l.max_age, 10)
         l.release()
-        l = Lock.objects.acquire_lock(None,
-                                      content_type=ContentType.objects.get_for_model(self.user),
-                                      object_id=self.user.id,
-                                      max_age=10)
-        self.assertEquals(l.locked_object, self.user)
+        l = Lock.objects.acquire_lock(lock_name='test_lock', max_age=10)
+        self.assertEquals(l.locked_object, 'test_lock')
 
     def test_unicode(self):
         ''' Test the __unicode__ '''
         l = Lock.objects.acquire_lock(self.user)
         str_rep = '%s' % l
-        self.assertNotEquals(str_rep.find(self.user.username), -1)
+        self.assertNotEquals(str_rep.find('%d' % self.user.id), -1)
         l.release()
 
     def test_relock(self):
