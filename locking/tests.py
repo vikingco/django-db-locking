@@ -27,10 +27,7 @@ class LockTest(TestCase):
         ''' Tests a double locking (lock and try to lock again) '''
         l = Lock.objects.acquire_lock(self.user)
         self.assertTrue(Lock.objects.is_locked(self.user))
-        try:
-            l2 = Lock.objects.acquire_lock(self.user)
-        except AlreadyLocked:
-            pass
+        self.assertRaises(AlreadyLocked, Lock.objects.acquire_lock, self.user)
         self.assertTrue(Lock.objects.is_locked(self.user))
         l.release()
 
@@ -40,10 +37,7 @@ class LockTest(TestCase):
         self.assertTrue(Lock.objects.is_locked(self.user))
         l.release()
         self.assertTrue(not Lock.objects.is_locked(self.user))
-        try:
-            l.release()
-        except NotLocked:
-            pass
+        l.release()
 
     def test_model(self):
         '''Test the model'''
