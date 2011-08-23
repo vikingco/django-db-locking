@@ -28,3 +28,10 @@ Wishlist
   `lockfile's <http://packages.python.org/lockfile/>`_ `FileLock.aquire
   <http://packages.python.org/lockfile/lockfile.html#lockfile.FileLock.acquire>`_
 - Global locks (for instance on a whole Model not just an object)
+
+Releases
+--------
+v1.0.1:
+  Corrected tests and code clean-up
+v1.0.0:
+  Intial release.
