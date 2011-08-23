@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from locking.exceptions import *
 from locking.models import Lock, _get_lock_name
 
+
 class LockTest(TestCase):
     def setUp(self):
         self.user = User.objects.create(username='Lock test')
@@ -75,9 +76,8 @@ class LockTest(TestCase):
         '''Test the expired locks'''
         l = Lock.objects.acquire_lock(self.user, max_age=0)
         l2 = Lock.objects.acquire_lock(l, max_age=1)
-        time.sleep(1) # make lock expire
+        time.sleep(1)  # make lock expire
         self.assertTrue(not l.is_expired)
         self.assertTrue(l2.is_expired)
         expired_locks = Lock.objects.get_expired_locks()
         self.assertEquals(len(expired_locks), 1)
-

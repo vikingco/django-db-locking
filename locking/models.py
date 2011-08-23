@@ -10,8 +10,10 @@ from locking.exceptions import NotLocked, AlreadyLocked
 
 DEFAULT_MAX_AGE = getattr(settings, 'LOCK_MAX_AGE', 0)
 
+
 def _get_lock_name(obj):
     return '%s.%s__%d' % (obj.__module__, obj.__class__.__name__, obj.id)
+
 
 class LockManager(models.Manager):
     def acquire_lock(self, obj=None, max_age=DEFAULT_MAX_AGE, lock_name=''):
@@ -20,7 +22,8 @@ class LockManager(models.Manager):
             lock_name = _get_lock_name(obj)
 
         try:
-            lock,created = self.get_or_create(locked_object=lock_name, max_age=max_age)
+            lock, created = self.get_or_create(locked_object=lock_name,
+                                               max_age=max_age)
         except IntegrityError:
             raise AlreadyLocked()
 
@@ -47,10 +50,19 @@ class LockManager(models.Manager):
                 result.append(l.id)
         return self.filter(id__in=result)
 
+
 class Lock(models.Model):
-    locked_object = models.CharField(max_length=255, verbose_name=_('locked object'), unique=True)
-    created_on = models.DateTimeField(auto_now_add=True, verbose_name=_('created on'), db_index=True)
-    max_age = models.PositiveIntegerField(default=DEFAULT_MAX_AGE, verbose_name=_('Maximum lock age'), help_text=_('The age of a lock before it can be overwritten. 0 means indefinitely.'))
+    locked_object = models.CharField(
+        max_length=255, verbose_name=_('locked object'), unique=True
+    )
+    created_on = models.DateTimeField(
+        auto_now_add=True, verbose_name=_('created on'), db_index=True
+    )
+    max_age = models.PositiveIntegerField(
+        default=DEFAULT_MAX_AGE, verbose_name=_('Maximum lock age'),
+        help_text=_('The age of a lock before it can be overwritten. '
+                    '0 means indefinitely.')
+    )
 
     objects = LockManager()
 

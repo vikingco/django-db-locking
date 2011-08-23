@@ -1,6 +1,7 @@
 class Error(Exception):
     pass
 
+
 class LockError(Error):
     '''
     Base class for errors arising from attempts to acquire the lock.
@@ -11,6 +12,7 @@ class LockError(Error):
     ...   pass
     '''
     pass
+
 
 class LockFailed(LockError):
     '''
@@ -23,6 +25,7 @@ class LockFailed(LockError):
     '''
     pass
 
+
 class AlreadyLocked(LockFailed):
     '''
     Some other process is locking the object.
@@ -33,6 +36,7 @@ class AlreadyLocked(LockFailed):
     ...   pass
     '''
     pass
+
 
 class UnlockError(Error):
     '''
@@ -45,6 +49,7 @@ class UnlockError(Error):
     '''
     pass
 
+
 class NotLocked(UnlockError):
     '''
     Raised when an attempt is made to unlock an unlocked file.
@@ -55,4 +60,3 @@ class NotLocked(UnlockError):
     ...   pass
     '''
     pass
-
