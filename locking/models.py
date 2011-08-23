@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.utils.translation import ugettext_lazy as _
 
-from locking.exceptions import NotLocked, AlreadyLocked
+from .exceptions import NotLocked, AlreadyLocked
 
 DEFAULT_MAX_AGE = getattr(settings, 'LOCK_MAX_AGE', 0)
 

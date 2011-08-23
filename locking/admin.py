@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from locking.models import Lock
+from .models import Lock
 
 
 class LockAdmin(admin.ModelAdmin):

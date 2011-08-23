@@ -8,8 +8,8 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
-from locking.exceptions import *
-from locking.models import Lock, _get_lock_name
+from .exceptions import AlreadyLocked
+from .models import Lock, _get_lock_name
 
 
 class LockTest(TestCase):
