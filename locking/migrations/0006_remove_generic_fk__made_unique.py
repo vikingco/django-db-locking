@@ -5,9 +5,10 @@ from south.v2 import SchemaMigration
 from django.db import models
 
 class Migration(SchemaMigration):
+    no_dry_run = True
 
     def forwards(self, orm):
-        
+
         # Removing unique constraint on 'Lock', fields ['object_id', 'content_type']
         db.delete_unique('locking_lock', ['object_id', 'content_type_id'])
 
@@ -22,7 +23,7 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        
+
         # Removing unique constraint on 'Lock', fields ['locked_object']
         db.delete_unique('locking_lock', ['locked_object'])
 
