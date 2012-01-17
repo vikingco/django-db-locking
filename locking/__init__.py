@@ -6,7 +6,7 @@ def get_version():
     '''
     Converts the :attr:`VERSION` into a nice string
     '''
-    if len(VERSION) > 3 and VERSION[3] != 'final':
+    if len(VERSION) > 3 and VERSION[3] not in ('final', ''):
         return '%s.%s.%s %s' % (VERSION[0], VERSION[1], VERSION[2], VERSION[3])
     else:
         return '%s.%s.%s' % (VERSION[0], VERSION[1], VERSION[2])
