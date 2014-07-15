@@ -1,5 +1,6 @@
-import datetime
+from datetime import timedelta
 
+from django.utils import timezone
 from django.db import models, IntegrityError
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -51,7 +52,7 @@ class LockManager(models.Manager):
         if not created:
             # check whether lock is expired
             if lock.is_expired:
-                lock.created_on = datetime.datetime.now()
+                lock.created_on = timezone.now()
                 lock.save()
                 return lock
             raise AlreadyLocked()
@@ -137,7 +138,7 @@ class Lock(models.Model):
             return :attr:`created_on`.
         :rtype: :class:`datetime.datetime`
         '''
-        return self.created_on + datetime.timedelta(seconds=self.max_age)
+        return self.created_on + timedelta(seconds=self.max_age)
 
     @property
     def is_expired(self):
@@ -149,4 +150,4 @@ class Lock(models.Model):
         if self.max_age == 0:
             return False
         else:
-            return self.expires_on < datetime.datetime.now()
+            return self.expires_on < timezone.now()
