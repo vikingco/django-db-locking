@@ -1,16 +1,12 @@
 # encoding: utf-8
-import datetime
-from south.db import db
 from south.v2 import DataMigration
-from django.contrib.contenttypes.models import ContentType
-from django.db import models
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
-        for l in orm.Lock.objects.all():
-            ct = ContentType.objects.get(app_label=l.content_type.app_label, model=l.content_type.model)
+        for l in orm['locking.Lock'].objects.all():
+            ct = orm['contenttypes.ContentType'].objects.get(app_label=l.content_type.app_label, model=l.content_type.model)
             model = ct.model_class
             l.locked_object = '%s.%s__%d' % (model.__module__, model.__name__, l.object_id)
             l.save()
