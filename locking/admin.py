@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import Lock
+from .models import NonBlockingLock
 
 
-class LockAdmin(admin.ModelAdmin):
+class NonBlockingLockAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_on'
     list_display = ('locked_object', 'created_on')
-admin.site.register(Lock, LockAdmin)
+admin.site.register(NonBlockingLock, NonBlockingLockAdmin)
