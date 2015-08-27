@@ -126,6 +126,15 @@ class NonBlockingLock(models.Model):
                   'creation_date': self.created_on}
         return _('Lock exists on %(object)s since %(creation_date)s') % values
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release(silent=True)
+
+        # Do not suppress exceptions
+        return None
+
     def release(self, silent=True):
         '''
         Releases the lock

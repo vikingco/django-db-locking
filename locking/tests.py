@@ -76,3 +76,9 @@ class NonBlockingLockTest(TestCase):
             self.assertTrue(l2.is_expired)
             expired_locks = NonBlockingLock.objects.get_expired_locks()
             self.assertEquals(len(expired_locks), 1)
+
+    def test_context_manager(self):
+        """A lock can be used as a context manager"""
+        with NonBlockingLock.objects.acquire_lock(self.user):
+            self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
+        self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
