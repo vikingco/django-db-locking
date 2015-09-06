@@ -22,6 +22,18 @@ class LockTest(TestCase):
         self.assertTrue(Lock.objects.is_locked(self.user))
         l.release()
         self.assertTrue(not Lock.objects.is_locked(self.user))
+    
+    def test_acquire_and_renew(self):
+        ''' Tests an aquire/renew cycle '''
+        l = Lock.objects.acquire_lock(self.user)
+        expires = l.expires_on()
+        time.sleep(1)
+        l.renew()
+        self.assertLess(expires, l.expires_on())
+        
+        l2 = Lock.objects.renew_lock(l.pk)
+        self.assertEqual(l.pk, l2.pk)
+        self.assertLess(l.expires_on(), l2.expires_on())
 
     def test_lock_twice(self):
         ''' Tests a double locking (lock and try to lock again) '''
