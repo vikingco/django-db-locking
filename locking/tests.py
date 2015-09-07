@@ -22,6 +22,11 @@ class LockTest(TestCase):
         self.assertTrue(Lock.objects.is_locked(self.user))
         l.release()
         self.assertTrue(not Lock.objects.is_locked(self.user))
+        l2 = Lock.objects.acquire_lock(self.user)
+        self.assertTrue(Lock.objects.is_locked(self.user))
+        Lock.objects.release_lock(l2.pk)
+        self.assertTrue(not Lock.objects.is_locked(self.user))
+        
 
     def test_lock_twice(self):
         ''' Tests a double locking (lock and try to lock again) '''
