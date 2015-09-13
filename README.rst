@@ -2,12 +2,19 @@ Django-locking
 ==============
 Usage
 -----
-If you want to lock a Django model, you can pass it along.
+The simplest use is by using it as a context manager:
+
+::
+
+    with NonBlockingLock.objects.acquire_lock(obj=model_obj):
+        model_obj.do_something()
+
+Or you can keep track of the lock yourself:
 
 ::
 
     try:
-        lock = Lock.objects.acquire_lock(obj=model_obj)
+        lock = NonBlockingLock.objects.acquire_lock(obj=model_obj)
     except AlreadyLocked:
         return False
 
@@ -15,10 +22,10 @@ If you want to lock a Django model, you can pass it along.
     lock.release()
 
 If you have no Django model, or you want to be able to specify the lock name
-yourself, you can do that to::
+yourself, you can do that too::
 
     # this will raise AlreadyLocked, if it's locked
-    lock = Lock.objects.acquire_lock(lock_name='my_lock')
+    lock = NonBlockingLock.objects.acquire_lock(lock_name='my_lock')
     do_something()
     lock.release()
 
@@ -38,6 +45,8 @@ Wishlist
 
 Releases
 --------
+v1.1.0:
+  Rename model to NonBlockingLock and add additional features
 v1.0.1:
   Corrected tests and code clean-up
 v1.0.0:
