@@ -81,6 +81,22 @@ class LockManager(models.Manager):
 
         return lock
 
+    def release_lock(self, pk):
+        '''
+        Releases a lock
+        :param int pk: the primary key for the lock to release
+        '''
+
+        with transaction.atomic():
+            try:
+                lock = self.get(pk=pk)
+            except self.model.DoesNotExist:
+                raise NotLocked()
+
+            lock.release()
+
+        return lock
+
     def is_locked(self, obj):
         '''
         Check whether a lock exists on a certain object
