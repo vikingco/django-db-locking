@@ -3,15 +3,13 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db import models, IntegrityError
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from django.utils.translation import ugettext_lazy as _
 
 from .exceptions import NotLocked, AlreadyLocked
 
 
 #: The default lock age.
-DEFAULT_MAX_AGE = getattr(settings, 'LOCK_MAX_AGE', 0)
+DEFAULT_MAX_AGE = 3600
 
 
 def _get_lock_name(obj):
@@ -30,7 +28,7 @@ class LockManager(models.Manager):
     '''
     The manager for :class:`Lock`
     '''
-    def acquire_lock(self, obj=None, max_age=DEFAULT_MAX_AGE, lock_name=''):
+    def acquire_lock(self, obj=None, max_age=None, lock_name=''):
         '''
         Acquires a lock
 
@@ -40,6 +38,9 @@ class LockManager(models.Manager):
         :param int max_age: the maximum age of the lock
         :param str lock_name: the name for the lock
         '''
+        if max_age is None:
+            max_age = getattr(settings, 'LOCK_MAX_AGE', DEFAULT_MAX_AGE)
+
         if obj is not None:
             lock_name = _get_lock_name(obj)
 
@@ -67,8 +68,7 @@ class LockManager(models.Manager):
 
         :returns: ``True`` if one exists
         '''
-        qs = self.filter(locked_object=_get_lock_name(obj))
-        return qs.count() > 0
+        return self.filter(locked_object=_get_lock_name(obj)).exists()
 
     def get_expired_locks(self):
         '''
@@ -84,9 +84,20 @@ class LockManager(models.Manager):
         return self.filter(id__in=result)
 
 
-class Lock(models.Model):
-    '''
-    '''
+class NonBlockingLock(models.Model):
+    """A non-blocking MySQL lock
+
+    This is a workaround for the fact the MySQL does not support
+    non-blocking locks. It uses `get_or_create` with a unique index
+    for the lock name.
+
+    `select_for_update()` should be used for blocking locks.
+
+    Non-blocking locks are supported natively with
+    `select_for_update(nowait=True)` when using alternative backends
+    such as PostgreSQL.
+
+    """
     #: The lock name
     locked_object = models.CharField(
         max_length=255, verbose_name=_('locked object'), unique=True
@@ -106,14 +117,23 @@ class Lock(models.Model):
     objects = LockManager()
 
     class Meta:
-        verbose_name = _('Lock')
-        verbose_name_plural = _('Locks')
+        verbose_name = _('NonBlockingLock')
+        verbose_name_plural = _('NonBlockingLocks')
         ordering = ['created_on']
 
     def __unicode__(self):
         values = {'object': self.locked_object,
                   'creation_date': self.created_on}
         return _('Lock exists on %(object)s since %(creation_date)s') % values
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release(silent=True)
+
+        # Do not suppress exceptions
+        return None
 
     def release(self, silent=True):
         '''
