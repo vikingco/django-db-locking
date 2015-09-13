@@ -68,7 +68,8 @@ class LockManager(models.Manager):
 
         :returns: ``True`` if one exists
         '''
-        return self.filter(locked_object=_get_lock_name(obj)).exists()
+        qs = self.filter(locked_object=_get_lock_name(obj))
+        return any([not lock.is_expired for lock in qs])
 
     def get_expired_locks(self):
         '''

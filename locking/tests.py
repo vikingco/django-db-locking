@@ -22,6 +22,13 @@ class NonBlockingLockTest(TestCase):
         l.release()
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
 
+    def test_obj_with_expired_lock_is_not_locked(self):
+        ''' Tests that manager.is_locked returns False if locks are expired '''
+        with freeze_time("2015-01-01 10:00"):
+            NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
+        with freeze_time("2015-01-01 11:00"):
+            self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
+
     def test_lock_twice(self):
         ''' Tests a double locking (lock and try to lock again) '''
         l = NonBlockingLock.objects.acquire_lock(self.user)
