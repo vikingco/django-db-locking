@@ -29,6 +29,19 @@ class NonBlockingLockTest(TestCase):
         with freeze_time("2015-01-01 11:00"):
             self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
 
+    def test_acquire_and_renew(self):
+        ''' Tests an aquire/renew cycle '''
+        with freeze_time("2015-01-01 10:00"):
+            l = NonBlockingLock.objects.acquire_lock(self.user)
+            expires = l.expires_on
+        with freeze_time("2015-01-01 11:00"):
+            l.renew()
+            self.assertLess(expires, l.expires_on)
+
+            l2 = NonBlockingLock.objects.renew_lock(l.pk)
+            self.assertEqual(l.pk, l2.pk)
+            self.assertEqual(l.expires_on, l2.expires_on)
+
     def test_lock_twice(self):
         ''' Tests a double locking (lock and try to lock again) '''
         l = NonBlockingLock.objects.acquire_lock(self.user)
