@@ -1,6 +1,7 @@
 """
 Tests for the locking application
 """
+from django.core.management import call_command
 from freezegun import freeze_time
 
 from django.test import TestCase
@@ -106,3 +107,16 @@ class NonBlockingLockTest(TestCase):
         with NonBlockingLock.objects.acquire_lock(self.user):
             self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
+
+
+class CleanExpiredLocksTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='CleanExpiredLocks test')
+
+    def test_clean_locks(self):
+        with freeze_time("2015-01-01 10:00"):
+            NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
+
+        self.assertEqual(1, NonBlockingLock.objects.get_expired_locks().count())
+        call_command('clean_expired_locks')
+        self.assertEqual(0, NonBlockingLock.objects.get_expired_locks().count())
