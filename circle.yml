@@ -1,0 +1,13 @@
+# remove this general block after merge with master
+general:
+    branches:
+        only:
+            - task/add-circleci
+
+machine:
+    python:
+        version: 2.7.6
+
+test:
+    override:
+        - python setup.py test
