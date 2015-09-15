@@ -51,22 +51,18 @@ class LockManager(models.Manager):
         try:
             lock, created = self.get_or_create(locked_object=lock_name,
                                                defaults={'max_age': max_age})
+            if not created:
+                # check whether lock is expired
+                if lock.is_expired:
+                    # Create a new lock to provide a new id for renewal.
+                    # This ensures the owner of the previous lock doesn't
+                    # remain in possession of the active lock id.
+                    lock.release()
+                    lock = self.create(locked_object=lock_name, max_age=max_age)
+                else:
+                    raise AlreadyLocked()
         except IntegrityError:
             raise AlreadyLocked()
-
-        if not created:
-            # check whether lock is expired
-            if lock.is_expired:
-                # Create a new lock to provide a new id for renewal.
-                # This ensures the owner of the previous lock doesn't
-                # remain in possession of the active lock id.
-                lock.release()
-                try:
-                    lock = self.create(locked_object=lock_name, max_age=max_age)
-                except IntegrityError:
-                    raise AlreadyLocked()
-            else:
-                raise AlreadyLocked()
 
         return lock
 
