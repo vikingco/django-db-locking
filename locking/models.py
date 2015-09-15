@@ -89,13 +89,12 @@ class LockManager(models.Manager):
         :param int pk: the primary key for the lock to release
         '''
 
-        with transaction.atomic():
-            try:
-                lock = self.get(pk=pk)
-            except self.model.DoesNotExist:
-                raise NotLocked()
+        try:
+            lock = self.get(pk=pk)
+        except self.model.DoesNotExist:
+            raise NotLocked()
 
-            lock.release()
+        lock.release()
 
         return lock
 
