@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from django.contrib.auth.models import User
 
-from .exceptions import AlreadyLocked
+from .exceptions import AlreadyLocked, RenewalError
 from .models import NonBlockingLock, _get_lock_name
 
 
@@ -25,6 +25,15 @@ class NonBlockingLockTest(TestCase):
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         NonBlockingLock.objects.release_lock(l2.pk)
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
+    
+    def test_renew_integrity_error(self):
+        l = NonBlockingLock.objects.acquire_lock(self.user)
+        self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
+        NonBlockingLock.objects.release_lock(l.pk)
+        self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
+        NonBlockingLock.objects.acquire_lock(self.user)
+        self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
+        self.assertRaises(RenewalError, l.renew)
 
     def test_obj_with_expired_lock_is_not_locked(self):
         ''' Tests that manager.is_locked returns False if locks are expired '''
