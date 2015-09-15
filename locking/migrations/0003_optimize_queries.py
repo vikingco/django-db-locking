@@ -16,13 +16,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='nonblockinglock',
             name='expires_on',
-            field=models.DateTimeField(default=datetime.datetime(2015, 9, 7, 3, 32, 8, 543000, tzinfo=utc), verbose_name='expires on', db_index=True),
+            field=models.DateTimeField(default=datetime.datetime(2015, 9, 7, 3, 32, 8, 543000), verbose_name='expires on', db_index=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='nonblockinglock',
             name='renewed_on',
-            field=models.DateTimeField(default=datetime.datetime(2015, 9, 7, 3, 32, 18, 56000, tzinfo=utc), verbose_name='renewed on', db_index=True),
+            field=models.DateTimeField(default=datetime.datetime(2015, 9, 7, 3, 32, 18, 56000), verbose_name='renewed on', db_index=True),
             preserve_default=False,
         ),
         migrations.AlterField(
