@@ -1,14 +1,14 @@
 from datetime import timedelta
 
 from django.utils import timezone
-from django.db import models, IntegrityError, transaction
+from django.db import models, IntegrityError
 from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from .exceptions import NotLocked, AlreadyLocked, NonexistentLock, Expired
+from .exceptions import NotLocked, AlreadyLocked, NonexistentLock, Expired, RenewalError
 
 
 #: The default lock age.
@@ -48,13 +48,9 @@ class LockManager(models.Manager):
         if obj is not None:
             lock_name = _get_lock_name(obj)
 
-        with transaction.atomic():
-            try:
-                lock, created = self.get_or_create(locked_object=lock_name,
-                                                   defaults={'max_age': max_age})
-            except IntegrityError:
-                raise AlreadyLocked()
-
+        try:
+            lock, created = self.get_or_create(locked_object=lock_name,
+                                               defaults={'max_age': max_age})
             if not created:
                 # check whether lock is expired
                 if lock.is_expired:
@@ -65,6 +61,8 @@ class LockManager(models.Manager):
                     lock = self.create(locked_object=lock_name, max_age=max_age)
                 else:
                     raise AlreadyLocked()
+        except IntegrityError:
+            raise AlreadyLocked()
 
         return lock
 
@@ -75,13 +73,12 @@ class LockManager(models.Manager):
         :param int pk: the primary key for the lock to renew
         '''
 
-        with transaction.atomic():
-            try:
-                lock = self.get(pk=pk)
-            except self.model.DoesNotExist:
-                raise NonexistentLock()
+        try:
+            lock = self.get(pk=pk)
+        except self.model.DoesNotExist:
+            raise NonexistentLock()
 
-            lock.renew()
+        lock.renew()
 
         return lock
 
@@ -91,13 +88,12 @@ class LockManager(models.Manager):
         :param int pk: the primary key for the lock to release
         '''
 
-        with transaction.atomic():
-            try:
-                lock = self.get(pk=pk)
-            except self.model.DoesNotExist:
-                raise NotLocked()
+        try:
+            lock = self.get(pk=pk)
+        except self.model.DoesNotExist:
+            raise NotLocked()
 
-            lock.release()
+        lock.release()
 
         return lock
 
@@ -222,7 +218,11 @@ class NonBlockingLock(models.Model):
             raise Expired()
 
         self.renewed_on = timezone.now()
-        self.save()
+
+        try:
+            self.save()
+        except IntegrityError:
+            raise RenewalError()
 
     @property
     def is_expired(self):
