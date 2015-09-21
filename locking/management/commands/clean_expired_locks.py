@@ -2,7 +2,10 @@ from optparse import make_option
 
 from django.core.management.base import NoArgsCommand
 
-from locking.models import Lock
+from locking.models import NonBlockingLock
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class Command(NoArgsCommand):
@@ -14,8 +17,8 @@ class Command(NoArgsCommand):
     )
 
     def handle_noargs(self, **options):
-        locks = Lock.objects.get_expired_locks()
+        locks = NonBlockingLock.objects.get_expired_locks()
         if options['dry_run']:
-            print 'Would delete %s locks' % len(locks)
+            logger.info('Would delete %s locks' % len(locks))
         else:
             locks.delete()
