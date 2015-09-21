@@ -4,4 +4,7 @@ machine:
 
 test:
     override:
-        - python setup.py test
+        - tox
+    post:
+        - pip install codecov
+        - codecov --token=${CODECOV_TOKEN}

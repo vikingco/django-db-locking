@@ -34,7 +34,7 @@ Test
 You can run the tests with
 ::
 
-    python setup.py test
+    tox
 
 Wishlist
 --------
@@ -45,6 +45,8 @@ Wishlist
 
 Releases
 --------
+v1.2.0:
+  Move id to UUIDField, add code quality checks and CI
 v1.1.0:
   Rename model to NonBlockingLock and add additional features
 v1.0.1:

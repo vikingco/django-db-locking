@@ -10,7 +10,7 @@ from django.test import TestCase
 
 from django.contrib.auth.models import User
 
-from .exceptions import AlreadyLocked, RenewalError
+from .exceptions import AlreadyLocked, RenewalError, NonexistentLock, NotLocked
 from .models import NonBlockingLock, _get_lock_name
 
 
@@ -20,6 +20,8 @@ class NonBlockingLockTest(TestCase):
 
     def test_acquire_and_release(self):
         ''' Tests an aquire/release cycle '''
+        self.assertRaises(NotLocked, NonBlockingLock.objects.release_lock, 0)
+
         l = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         l.release()
@@ -47,6 +49,8 @@ class NonBlockingLockTest(TestCase):
 
     def test_acquire_and_renew(self):
         ''' Tests an aquire/renew cycle '''
+        self.assertRaises(NonexistentLock, NonBlockingLock.objects.renew_lock, 0)
+
         with freeze_time("2015-01-01 10:00"):
             l = NonBlockingLock.objects.acquire_lock(self.user)
             expires = l.expires_on
@@ -129,6 +133,8 @@ class CleanExpiredLocksTest(TestCase):
         with freeze_time("2015-01-01 10:00"):
             NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
 
+        self.assertEqual(1, NonBlockingLock.objects.get_expired_locks().count())
+        call_command('clean_expired_locks', dry_run=True)
         self.assertEqual(1, NonBlockingLock.objects.get_expired_locks().count())
         call_command('clean_expired_locks')
         self.assertEqual(0, NonBlockingLock.objects.get_expired_locks().count())
