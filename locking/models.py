@@ -1,3 +1,5 @@
+import uuid
+
 from datetime import timedelta
 
 from django.utils import timezone
@@ -154,6 +156,9 @@ class NonBlockingLock(models.Model):
     such as PostgreSQL.
 
     """
+    # UUIDField is more appropriate for the lock id than AutoField
+    # and allows exposing the id client-side without leaking data
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     #: The lock name
     locked_object = models.CharField(
         max_length=255, verbose_name=_('locked object'), unique=True

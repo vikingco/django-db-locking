@@ -1,6 +1,8 @@
 """
 Tests for the locking application
 """
+import uuid
+
 from freezegun import freeze_time
 
 from django.test import TestCase
@@ -81,6 +83,7 @@ class NonBlockingLockTest(TestCase):
         l.release()
         l = NonBlockingLock.objects.acquire_lock(lock_name='test_lock', max_age=10)
         self.assertEquals(l.locked_object, 'test_lock')
+        self.assertIsInstance(l.id, uuid.UUID)
 
     def test_unicode(self):
         ''' Test the __unicode__ '''
