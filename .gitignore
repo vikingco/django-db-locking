@@ -19,8 +19,11 @@ develop-eggs
 pip-log.txt
 
 # Unit test / coverage reports
+coverage.xml
 .coverage
 .tox
 
 #Mr Developer
 .mr.developer.cfg
+
+/.eggs/

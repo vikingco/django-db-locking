@@ -1,0 +1,10 @@
+machine:
+    python:
+        version: 2.7.6
+
+test:
+    override:
+        - tox
+    post:
+        - pip install codecov
+        - codecov --token=${CODECOV_TOKEN}

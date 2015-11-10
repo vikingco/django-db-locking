@@ -1,13 +1,16 @@
 """
 Tests for the locking application
 """
+import uuid
+
 from freezegun import freeze_time
 
+from django.core.management import call_command
 from django.test import TestCase
 
 from django.contrib.auth.models import User
 
-from .exceptions import AlreadyLocked
+from .exceptions import AlreadyLocked, RenewalError
 from .models import NonBlockingLock, _get_lock_name
 
 
@@ -25,6 +28,15 @@ class NonBlockingLockTest(TestCase):
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         NonBlockingLock.objects.release_lock(l2.pk)
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
+
+    def test_renew_integrity_error(self):
+        l = NonBlockingLock.objects.acquire_lock(self.user)
+        self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
+        NonBlockingLock.objects.release_lock(l.pk)
+        self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
+        NonBlockingLock.objects.acquire_lock(self.user)
+        self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
+        self.assertRaises(RenewalError, l.renew)
 
     def test_obj_with_expired_lock_is_not_locked(self):
         ''' Tests that manager.is_locked returns False if locks are expired '''
@@ -72,6 +84,7 @@ class NonBlockingLockTest(TestCase):
         l.release()
         l = NonBlockingLock.objects.acquire_lock(lock_name='test_lock', max_age=10)
         self.assertEquals(l.locked_object, 'test_lock')
+        self.assertIsInstance(l.id, uuid.UUID)
 
     def test_unicode(self):
         ''' Test the __unicode__ '''
@@ -106,3 +119,18 @@ class NonBlockingLockTest(TestCase):
         with NonBlockingLock.objects.acquire_lock(self.user):
             self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
+
+
+class CleanExpiredLocksTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='CleanExpiredLocks test')
+
+    def test_clean_locks(self):
+        with freeze_time("2015-01-01 10:00"):
+            NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
+
+        self.assertEqual(1, NonBlockingLock.objects.get_expired_locks().count())
+        call_command('clean_expired_locks', dry_run=True)
+        self.assertEqual(1, NonBlockingLock.objects.get_expired_locks().count())
+        call_command('clean_expired_locks')
+        self.assertEqual(0, NonBlockingLock.objects.get_expired_locks().count())

@@ -30,9 +30,9 @@ class RunTestsCommand(SetuptoolsTestCommand):
         raise SystemExit(errno)
 
 setup(
-    name="django-locking",
+    name="django-db-locking",
     version=locking.__version__,
-    url='https://github.com/vikingco/django-locking/',
+    url='https://github.com/vikingco/django-db-locking/',
     license='BSD',
     description='Database locking',
     long_description=open('README.rst', 'r').read(),
