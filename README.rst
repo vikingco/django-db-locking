@@ -45,6 +45,8 @@ Wishlist
 
 Releases
 --------
+v1.2.1:
+  Fix problem in migration to UUIDField for PostGres
 v1.2.0:
   Move id to UUIDField, add code quality checks and CI
 v1.1.0:
