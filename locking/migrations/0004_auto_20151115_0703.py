@@ -12,7 +12,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='nonblockinglock',
+            name='id',
+        ),
+        migrations.AddField(
             model_name='nonblockinglock',
             name='id',
             field=models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True),
