@@ -50,8 +50,15 @@ class LockManager(models.Manager):
 
         with transaction.atomic():
             try:
+                now = timezone.now()
+
+                defaults = {'max_age': max_age,
+                            'created_on': now,
+                            'renewed_on': now,
+                            'expires_on': now + timedelta(seconds=max_age)}
+
                 lock, created = self.get_or_create(locked_object=lock_name,
-                                                   defaults={'max_age': max_age})
+                                                   defaults=defaults)
             except IntegrityError:
                 raise AlreadyLocked()
 
