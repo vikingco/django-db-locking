@@ -2,13 +2,13 @@
 Tests for the locking application
 """
 from freezegun import freeze_time
-from locking.management.commands.clean_expired_locks import Command as CleanCommand
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 
 from .exceptions import AlreadyLocked
 from .models import NonBlockingLock, _get_lock_name
+from .tasks import clean_expired_locks
 
 
 class NonBlockingLockTest(TestCase):
@@ -109,7 +109,7 @@ class NonBlockingLockTest(TestCase):
 
 
 class CleanExpiredLocksTest(TestCase):
-    """Tests correct functioning of the management command that cleans expired locks."""
+    """Tests correct functioning of the task that cleans expired locks."""
     def setUp(self):
         self.user = User.objects.create(username='hellofoo')
 
@@ -120,5 +120,5 @@ class CleanExpiredLocksTest(TestCase):
             NonBlockingLock.objects.acquire_lock(lock_to_be_released, max_age=1)
         with freeze_time("2015-01-01 11:00"):
             # Only the non-expired lock should remain
-            CleanCommand().handle_noargs(dry_run=False)
+            clean_expired_locks()
             self.assertEqual(NonBlockingLock.objects.get(), lock_to_be_released)
