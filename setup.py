@@ -39,7 +39,7 @@ setup(
     author='VikingCo',
     packages=find_packages('.'),
     cmdclass={'test': RunTestsCommand},
-    tests_require=['django', 'freezegun'],
+    tests_require=['django', 'freezegun', 'celery'],
     classifiers=[
         'Intended Audience :: Developers',
         'Programming Language :: Python',
