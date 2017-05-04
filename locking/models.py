@@ -3,7 +3,7 @@ import uuid
 from datetime import timedelta
 
 from django.utils import timezone
-from django.db import models, IntegrityError
+from django.db import models, IntegrityError, transaction
 from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -61,21 +61,19 @@ class LockManager(models.Manager):
 
                 lock, created = self.get_or_create(locked_object=lock_name,
                                                    defaults=defaults)
+                if not created:
+                    # check whether lock is expired
+                    if lock.is_expired:
+                        # Create a new lock to provide a new id for renewal.
+                        # This ensures the owner of the previous lock doesn't
+                        # remain in possession of the active lock id.
+                        lock.release()
+                        lock = self.create(locked_object=lock_name, max_age=max_age)
+                    else:
+                        raise AlreadyLocked()
+
             except IntegrityError:
                 raise AlreadyLocked()
-
-            if not created:
-                # check whether lock is expired
-                if lock.is_expired:
-                    # Create a new lock to provide a new id for renewal.
-                    # This ensures the owner of the previous lock doesn't
-                    # remain in possession of the active lock id.
-                    lock.release()
-                    lock = self.create(locked_object=lock_name, max_age=max_age)
-                else:
-                    raise AlreadyLocked()
-        except IntegrityError:
-            raise AlreadyLocked()
 
         return lock
 
