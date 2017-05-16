@@ -2,6 +2,10 @@ machine:
     python:
         version: 2.7.6
 
+dependencies:
+    override:
+        - pip install -U tox virtualenv
+
 test:
     override:
         - tox

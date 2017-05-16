@@ -45,6 +45,9 @@ Wishlist
 
 Releases
 --------
+v2.0.0:
+  Merging of master and pre-django-1.8 branches
+  Removes management command in favor of a celery task
 v1.2.1:
   Fix problem in migration to UUIDField for PostGres
 v1.2.0:
