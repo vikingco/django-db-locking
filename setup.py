@@ -37,6 +37,7 @@ setup(
     description='Database locking',
     long_description=open('README.rst', 'r').read(),
     author='VikingCo',
+    author_email='operations@unleashed.be',
     packages=find_packages('.'),
     cmdclass={'test': RunTestsCommand},
     tests_require=['django', 'freezegun', 'celery'],
