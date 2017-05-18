@@ -1,6 +1,24 @@
 Django
-freezegun
-tox
-coverage
 celery
-amqp>=1.3.0,<2.1.0
+
+# freeze time
+freezegun
+
+# pytest
+pytest
+pytest-django
+
+# coverage
+pytest-cov
+coverage
+coveralls
+
+
+# flake8
+flake8
+pep8
+pyflakes
+mccabe
+pep8-naming
+flake8-print
+flake8-debugger

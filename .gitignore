@@ -3,8 +3,7 @@
 *.py[co]
 
 # Packages
-*.egg
-*.egg-info
+*.egg*
 dist
 build
 eggs
@@ -26,4 +25,6 @@ coverage.xml
 #Mr Developer
 .mr.developer.cfg
 
-/.eggs/
+# Virtualenvs
+.venv*
+.cache/

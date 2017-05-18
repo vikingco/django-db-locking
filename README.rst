@@ -1,5 +1,11 @@
 Django-locking
 ==============
+
+.. image:: https://coveralls.io/repos/github/vikingco/django-db-locking/badge.svg?branch=py23
+    :target: https://coveralls.io/github/vikingco/django-db-locking?branch=py23
+.. image:: https://travis-ci.org/vikingco/django-db-locking.svg?branch=master
+    :target: https://travis-ci.org/vikingco/django-db-locking
+
 Usage
 -----
 The simplest use is by using it as a context manager:
