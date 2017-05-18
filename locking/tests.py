@@ -1,6 +1,7 @@
 """
 Tests for the locking application
 """
+from __future__ import absolute_import
 import uuid
 
 from freezegun import freeze_time
@@ -8,7 +9,7 @@ from freezegun import freeze_time
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .exceptions import AlreadyLocked, RenewalError
+from .exceptions import AlreadyLocked, RenewalError, NonexistentLock, NotLocked, Expired
 from .models import NonBlockingLock, _get_lock_name
 from .tasks import clean_expired_locks
 
@@ -23,6 +24,7 @@ class NonBlockingLockTest(TestCase):
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         l.release()
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
+        self.assertRaises(NotLocked, l.release, silent=False)
         l2 = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         NonBlockingLock.objects.release_lock(l2.pk)
@@ -57,6 +59,20 @@ class NonBlockingLockTest(TestCase):
             self.assertEqual(l.pk, l2.pk)
             self.assertEqual(l.expires_on, l2.expires_on)
 
+    def test_renew_expired(self):
+        ''' Tests renew an expired lock '''
+        with freeze_time("2015-01-01 10:00"):
+            l = NonBlockingLock.objects.acquire_lock(self.user, 1)
+        self.assertRaises(Expired, l.renew)
+
+    def test_renew_nonexistinglock(self):
+        ''' Tests renewing a non existent lock '''
+        self.assertRaises(NonexistentLock, NonBlockingLock.objects.renew_lock, uuid.uuid4())
+
+    def test_release_nonexistinglock(self):
+        ''' Tests release a non existent lock '''
+        self.assertRaises(NotLocked, NonBlockingLock.objects.release_lock, uuid.uuid4())
+
     def test_lock_twice(self):
         ''' Tests a double locking (lock and try to lock again) '''
         l = NonBlockingLock.objects.acquire_lock(self.user)
@@ -84,13 +100,6 @@ class NonBlockingLockTest(TestCase):
         l = NonBlockingLock.objects.acquire_lock(lock_name='test_lock', max_age=10)
         self.assertEquals(l.locked_object, 'test_lock')
         self.assertIsInstance(l.id, uuid.UUID)
-
-    def test_unicode(self):
-        ''' Test the __unicode__ '''
-        l = NonBlockingLock.objects.acquire_lock(self.user)
-        str_rep = '%s' % l
-        self.assertNotEquals(str_rep.find('%d' % self.user.id), -1)
-        l.release()
 
     def test_relock(self):
         '''Test to allow lock if lock is expired'''
