@@ -9,7 +9,7 @@ python:
    - "3.6"
 install:
    - pip install -e .
-   - pip install -r deployment/requirements_test.txt
+   - pip install -r requirements/requirements_test.txt
    - pip install "Django${DJANGO}"
 before_script:
     flake8 locking/

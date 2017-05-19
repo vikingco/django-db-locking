@@ -5,8 +5,8 @@ omit =
     # Ignore migrations
     */migrations/*
 
-    # Ignore deployment files
-    deployment/*
+    # Ignore requirement files
+    requirements/*
 
     # Ignore manage files
     manage*
