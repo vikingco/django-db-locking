@@ -41,6 +41,7 @@ setup(
     extras_require={'celery':  ["celery"] },
     tests_require=tests_require,
     dependency_links=dependency_links,
+    zip_safe=False,
     classifiers=[
         'Intended Audience :: Developers',
         'Programming Language :: Python',
