@@ -1,2 +1,26 @@
 [run]
-omit = setup.py
+branch = True
+source = locking/
+omit =
+    # Ignore migrations
+    */migrations/*
+
+    # Ignore requirement files
+    requirements/*
+
+    # Ignore manage files
+    manage*
+
+    # Ignore admin files
+    locking/*/admin.py
+
+    # Ignore test_project file
+    test_project/*
+[report]
+exclude_lines=
+    pragma: no cover
+    def __repr__
+    def __iter__
+    def __str__
+    def __unicode__
+fail_under = 99

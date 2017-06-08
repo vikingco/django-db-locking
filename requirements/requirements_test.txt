@@ -1,0 +1,23 @@
+celery
+
+# freeze time
+freezegun
+
+# pytest
+pytest
+pytest-django
+
+# coverage
+pytest-cov
+coverage
+coveralls
+
+
+# flake8
+flake8
+pep8
+pyflakes
+mccabe
+pep8-naming
+flake8-print
+flake8-debugger
