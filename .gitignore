@@ -32,3 +32,6 @@ coverage.xml
 
 # IDE junk
 /.idea
+
+# SQLite test db
+/db.sqlite3
