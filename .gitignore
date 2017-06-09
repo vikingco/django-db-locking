@@ -26,6 +26,7 @@ coverage.xml
 .mr.developer.cfg
 
 # Virtualenvs
+/venv
 .venv*
 .cache/
 
