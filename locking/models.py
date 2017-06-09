@@ -188,7 +188,7 @@ class NonBlockingLock(models.Model):
     #: The age of a lock before it can be overwritten. If it's ``MAX_AGE_FOREVER``, it will
     #: never expire.
     max_age = models.PositiveIntegerField(
-        default=DEFAULT_MAX_AGE, verbose_name=_('Maximum lock age'),
+        default=MAX_AGE_FOREVER, verbose_name=_('Maximum lock age'),
         help_text=_('The age of a lock before it can be overwritten. '
                     '%s means indefinitely.' % MAX_AGE_FOREVER)
     )
