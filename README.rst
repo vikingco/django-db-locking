@@ -35,19 +35,14 @@ yourself, you can do that too::
     do_something()
     lock.release()
 
+Note that locks can expire automatically. There is a `LOCK_MAX_AGE` settings where you can specify a default lock release value for locks in your entire Django codebase. This value can be overridden per lock by setting the `max_age` parameter.
+
 Test
 -----
 You can run the tests with
 ::
 
     tox
-
-Wishlist
---------
-- Add lock time-out (try to aquire a lock for up to a given TIME_OUT), like
-  `lockfile's <http://packages.python.org/lockfile/>`_ `FileLock.aquire
-  <http://packages.python.org/lockfile/lockfile.html#lockfile.FileLock.acquire>`_
-- Global locks (for instance on a whole Model not just an object)
 
 Releases
 --------

@@ -26,5 +26,12 @@ coverage.xml
 .mr.developer.cfg
 
 # Virtualenvs
+/venv
 .venv*
 .cache/
+
+# IDE junk
+/.idea
+
+# SQLite test db
+/db.sqlite3

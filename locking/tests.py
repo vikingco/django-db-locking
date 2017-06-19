@@ -4,10 +4,13 @@ Tests for the locking application
 from __future__ import absolute_import
 import uuid
 
+from datetime import datetime, timedelta
+from django.conf import settings
+
 from freezegun import freeze_time
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from .exceptions import AlreadyLocked, RenewalError, NonexistentLock, NotLocked, Expired
 from .models import NonBlockingLock, _get_lock_name
@@ -143,3 +146,36 @@ class CleanExpiredLocksTest(TestCase):
             # Only the non-expired lock should remain
             clean_expired_locks()
             self.assertEqual(NonBlockingLock.objects.get(), lock_to_be_released)
+
+    def test_implicit_cleaning_disabled(self):
+        """If no max_age parameter is given and locks aren't configured to autoexpire, don't clean them up."""
+        assert hasattr(settings, 'LOCK_MAX_AGE') is False
+        initial_timestamp = datetime(2017, 1, 1)
+
+        with freeze_time(initial_timestamp):
+            lock_to_remain = NonBlockingLock.objects.acquire_lock(self.user)
+        with freeze_time(initial_timestamp + timedelta(days=9600)):
+            clean_expired_locks()
+            assert NonBlockingLock.objects.get() == lock_to_remain
+
+    @override_settings(LOCK_MAX_AGE=0)
+    def test_implicit_cleaning_set_to_zero(self):
+        """If the LOCK_MAX_AGE setting is set to 0, no locks should autoexpire."""
+        initial_timestamp = datetime(2017, 1, 1)
+
+        with freeze_time(initial_timestamp):
+            lock_to_remain = NonBlockingLock.objects.acquire_lock(self.user)
+        with freeze_time(initial_timestamp + timedelta(days=9600)):
+            clean_expired_locks()
+            assert NonBlockingLock.objects.get() == lock_to_remain
+
+    @override_settings(LOCK_MAX_AGE=1)
+    def test_implicit_cleaning_set_to_nonzero(self):
+        """If the LOCK_MAX_AGE setting is bigger than 0, locks should autoexpire."""
+        initial_timestamp = datetime(2017, 1, 1)
+
+        with freeze_time(initial_timestamp):
+            NonBlockingLock.objects.acquire_lock(self.user)
+        with freeze_time(initial_timestamp + timedelta(seconds=1)):
+            clean_expired_locks()
+            assert NonBlockingLock.objects.count() == 0
