@@ -20,23 +20,23 @@ DEFAULT_MAX_AGE = getattr(settings, 'LOCK_MAX_AGE', MAX_AGE_FOREVER)
 
 
 def _get_lock_name(obj):
-    '''
+    """
     Gets a lock name for the object.
 
     :param django.db.models.Model obj: the object for which we want the lock
 
     :returns: a name for this object
     :rtype: :class:`str`
-    '''
+    """
     return '%s.%s__%d' % (obj.__module__, obj.__class__.__name__, obj.id)
 
 
 class LockManager(models.Manager):
-    '''
+    """
     The manager for :class:`Lock`
-    '''
+    """
     def acquire_lock(self, obj=None, max_age=None, lock_name=''):
-        '''
+        """
         Acquires a lock
 
         :param obj: the object we want to lock, this will override
@@ -44,7 +44,7 @@ class LockManager(models.Manager):
         :type: :class:`django.db.models.Model` or ``None``
         :param int max_age: the maximum age of the lock
         :param str lock_name: the name for the lock
-        '''
+        """
         if max_age is None:
             max_age = getattr(settings, 'LOCK_MAX_AGE', DEFAULT_MAX_AGE)
 
@@ -79,11 +79,11 @@ class LockManager(models.Manager):
         return lock
 
     def renew_lock(self, pk):
-        '''
+        """
         Renews a lock
 
         :param int pk: the primary key for the lock to renew
-        '''
+        """
 
         try:
             lock = self.get(pk=pk)
@@ -95,10 +95,10 @@ class LockManager(models.Manager):
         return lock
 
     def release_lock(self, pk):
-        '''
+        """
         Releases a lock
         :param int pk: the primary key for the lock to release
-        '''
+        """
 
         try:
             lock = self.get(pk=pk)
@@ -116,39 +116,39 @@ class LockManager(models.Manager):
         return self.filter_lock_for_obj(obj).filter(self.not_expired_lookup)
 
     def is_locked(self, obj):
-        '''
+        """
         Check whether a lock exists on a certain object
 
         :param django.db.models.Model obj: the object which we want to check
 
         :returns: ``True`` if one exists
-        '''
+        """
         return self.filter_active_lock_for_obj(obj).exists()
 
     def get_expired_locks(self):
-        '''
+        """
         Gets all expired locks
 
         :returns: a :class:`~django.db.models.query.QuerySet` containing all
             expired locks
-        '''
+        """
         return self.filter(self.expired_lookup)
 
     @property
     def not_expired_lookup(self):
-        '''
+        """
         locks are not expired if max_age is forever or expires_on is in the future
 
         :returns: :class:`~from django.db.models.Q` matching all locks that are NOT expired
-        '''
+        """
         return Q(max_age=MAX_AGE_FOREVER) | Q(expires_on__gt=timezone.now())
 
     @property
     def expired_lookup(self):
-        '''
+        """
         negate the "not expired lookup"
         :returns: :class:`~from django.db.models.Q` matching all locks that ARE expired
-        '''
+        """
         return ~self.not_expired_lookup
 
 
@@ -215,12 +215,12 @@ class NonBlockingLock(models.Model):
         return None
 
     def release(self, silent=True):
-        '''
+        """
         Releases the lock
 
         :param bool silent: if it's ``False`` it will raise an
             :class:`~locking.exceptions.NotLocked` error.
-        '''
+        """
         if not getattr(self, 'unlocked', False):
             self.delete()
             self.unlocked = True
@@ -241,11 +241,11 @@ class NonBlockingLock(models.Model):
 
     @property
     def is_expired(self):
-        '''
+        """
         Is the lock expired?
 
         :returns: ``True`` or ``False``
-        '''
+        """
         if self.max_age == MAX_AGE_FOREVER:
             return False
         else:
