@@ -22,106 +22,114 @@ class NonBlockingLockTest(TestCase):
         self.user = User.objects.create(username='NonBlockingLock test')
 
     def test_acquire_and_release(self):
-        ''' Tests an aquire/release cycle '''
-        l = NonBlockingLock.objects.acquire_lock(self.user)
+        """Tests an acquire/release cycle"""
+        lock_1 = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        l.release()
+        lock_1.release()
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
-        self.assertRaises(NotLocked, l.release, silent=False)
-        l2 = NonBlockingLock.objects.acquire_lock(self.user)
+        self.assertRaises(NotLocked, lock_1.release, silent=False)
+        lock_2 = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        NonBlockingLock.objects.release_lock(l2.pk)
+        NonBlockingLock.objects.release_lock(lock_2.pk)
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
 
+    @override_settings(USE_TZ=True)
+    def test_saved_as_timezone_aware(self):
+        """Timezone-aware timestamps should be written to database if USE_TZ is on."""
+        lock = NonBlockingLock.objects.acquire_lock(lock_name='foo')
+        assert lock.expires_on.tzinfo is not None
+        assert lock.created_on.tzinfo is not None
+        assert lock.renewed_on.tzinfo is not None
+
     def test_renew_integrity_error(self):
-        l = NonBlockingLock.objects.acquire_lock(self.user)
+        lock_1 = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        NonBlockingLock.objects.release_lock(l.pk)
+        NonBlockingLock.objects.release_lock(lock_1.pk)
         self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
         NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        self.assertRaises(RenewalError, l.renew)
+        self.assertRaises(RenewalError, lock_1.renew)
 
     def test_obj_with_expired_lock_is_not_locked(self):
-        ''' Tests that manager.is_locked returns False if locks are expired '''
+        """Tests that manager.is_locked returns False if locks are expired"""
         with freeze_time("2015-01-01 10:00"):
             NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
         with freeze_time("2015-01-01 11:00"):
             self.assertFalse(NonBlockingLock.objects.is_locked(self.user))
 
     def test_acquire_and_renew(self):
-        ''' Tests an aquire/renew cycle '''
+        """Tests an aquire/renew cycle"""
         with freeze_time("2015-01-01 10:00"):
-            l = NonBlockingLock.objects.acquire_lock(self.user)
-            expires = l.expires_on
+            lock_1 = NonBlockingLock.objects.acquire_lock(self.user)
+            expires = lock_1.expires_on
         with freeze_time("2015-01-01 11:00"):
-            l.renew()
-            self.assertLess(expires, l.expires_on)
+            lock_1.renew()
+            self.assertLess(expires, lock_1.expires_on)
 
-            l2 = NonBlockingLock.objects.renew_lock(l.pk)
-            self.assertEqual(l.pk, l2.pk)
-            self.assertEqual(l.expires_on, l2.expires_on)
+            lock_2 = NonBlockingLock.objects.renew_lock(lock_1.pk)
+            self.assertEqual(lock_1.pk, lock_2.pk)
+            self.assertEqual(lock_1.expires_on, lock_2.expires_on)
 
     def test_renew_expired(self):
-        ''' Tests renew an expired lock '''
+        """Tests renew an expired lock"""
         with freeze_time("2015-01-01 10:00"):
-            l = NonBlockingLock.objects.acquire_lock(self.user, 1)
-        self.assertRaises(Expired, l.renew)
+            lock_1 = NonBlockingLock.objects.acquire_lock(self.user, 1)
+        self.assertRaises(Expired, lock_1.renew)
 
     def test_renew_nonexistinglock(self):
-        ''' Tests renewing a non existent lock '''
+        """Tests renewing a non existent lock"""
         self.assertRaises(NonexistentLock, NonBlockingLock.objects.renew_lock, uuid.uuid4())
 
     def test_release_nonexistinglock(self):
-        ''' Tests release a non existent lock '''
+        """Tests release a non existent lock"""
         self.assertRaises(NotLocked, NonBlockingLock.objects.release_lock, uuid.uuid4())
 
     def test_lock_twice(self):
-        ''' Tests a double locking (lock and try to lock again) '''
-        l = NonBlockingLock.objects.acquire_lock(self.user)
+        """Tests a double locking (lock and try to lock again)"""
+        lock = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
         self.assertRaises(AlreadyLocked, NonBlockingLock.objects.acquire_lock, self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        l.release()
+        lock.release()
 
     def test_unlock_twice(self):
-        ''' Tests a double unlocking (unlock and try to unlock again) '''
-        l = NonBlockingLock.objects.acquire_lock(self.user)
+        """Tests a double unlocking (unlock and try to unlock again)"""
+        lock = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
-        l.release()
+        lock.release()
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
-        l.release()
+        lock.release()
 
     def test_model(self):
-        '''Test the model'''
-        l = NonBlockingLock.objects.acquire_lock(self.user, max_age=10)
-        self.assertTrue(l.locked_object.endswith('%d' % self.user.id))
-        self.assertEquals(l.locked_object, _get_lock_name(self.user))
-        self.assertTrue(l.created_on)
-        self.assertEquals(l.max_age, 10)
-        l.release()
-        l = NonBlockingLock.objects.acquire_lock(lock_name='test_lock', max_age=10)
-        self.assertEquals(l.locked_object, 'test_lock')
-        self.assertIsInstance(l.id, uuid.UUID)
+        """Test the model"""
+        lock = NonBlockingLock.objects.acquire_lock(self.user, max_age=10)
+        self.assertTrue(lock.locked_object.endswith('%d' % self.user.id))
+        self.assertEquals(lock.locked_object, _get_lock_name(self.user))
+        self.assertTrue(lock.created_on)
+        self.assertEquals(lock.max_age, 10)
+        lock.release()
+        lock = NonBlockingLock.objects.acquire_lock(lock_name='test_lock', max_age=10)
+        self.assertEquals(lock.locked_object, 'test_lock')
+        self.assertIsInstance(lock.id, uuid.UUID)
 
     def test_relock(self):
-        '''Test to allow lock if lock is expired'''
+        """Test to allow lock if lock is expired"""
         with freeze_time("2015-01-01 10:00"):
-            l = NonBlockingLock.objects.acquire_lock(self.user, max_age=10)
+            lock_1 = NonBlockingLock.objects.acquire_lock(self.user, max_age=10)
         with freeze_time("2015-01-01 11:00"):
-            self.assertTrue(l.is_expired)
+            self.assertTrue(lock_1.is_expired)
             # try to lock again
-            l2 = NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
-            self.assertNotEquals(l.created_on, l2.created_on)
+            lock_2 = NonBlockingLock.objects.acquire_lock(self.user, max_age=1)
+            self.assertNotEquals(lock_1.created_on, lock_2.created_on)
 
     def test_expired(self):
-        '''Test the expired locks'''
+        """Test the expired locks"""
         with freeze_time("2015-01-01 10:00"):
-            l = NonBlockingLock.objects.acquire_lock(self.user, max_age=0)
-            l2 = NonBlockingLock.objects.acquire_lock(l, max_age=1)
+            lock_1 = NonBlockingLock.objects.acquire_lock(self.user, max_age=0)
+            lock_2 = NonBlockingLock.objects.acquire_lock(lock_1, max_age=1)
         with freeze_time("2015-01-01 11:00"):
-            self.assertTrue(not l.is_expired)
-            self.assertTrue(l2.is_expired)
+            self.assertTrue(not lock_1.is_expired)
+            self.assertTrue(lock_2.is_expired)
             expired_locks = NonBlockingLock.objects.get_expired_locks()
             self.assertEquals(len(expired_locks), 1)
 
