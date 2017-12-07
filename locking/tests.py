@@ -33,6 +33,14 @@ class NonBlockingLockTest(TestCase):
         NonBlockingLock.objects.release_lock(l2.pk)
         self.assertTrue(not NonBlockingLock.objects.is_locked(self.user))
 
+    @override_settings(USE_TZ=True)
+    def test_saved_as_timezone_aware(self):
+        """Timezone-aware timestamps should be written to database if USE_TZ is on."""
+        lock = NonBlockingLock.objects.acquire_lock(lock_name='foo')
+        assert lock.expires_on.tzinfo is not None
+        assert lock.created_on.tzinfo is not None
+        assert lock.renewed_on.tzinfo is not None
+
     def test_renew_integrity_error(self):
         l = NonBlockingLock.objects.acquire_lock(self.user)
         self.assertTrue(NonBlockingLock.objects.is_locked(self.user))
