@@ -9,8 +9,6 @@ import uuid
 
 class Migration(migrations.Migration):
 
-    replaces = [('locking', '0001_initial'), ('locking', '0002_rename'), ('locking', '0003_optimize_queries'), ('locking', '0004_auto_20160907_0942'), ('locking', '0004_auto_20151115_0703'), ('locking', '0005_merge_20170504_1024'), ('locking', '0006_auto_20170609_1342'), ('locking', '0007_auto_20171004_0900')]
-
     initial = True
 
     dependencies = [

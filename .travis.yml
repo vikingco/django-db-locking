@@ -12,7 +12,9 @@ install:
    - pip install -r requirements/requirements_test.txt
    - pip install "Django${DJANGO}"
 before_script:
-    flake8 locking/
+    # All migrations have to be generated
+    - (! python test_project/manage.py makemigrations --dry-run --exit)
+    - flake8 locking/
 script:
     pytest -v --capture=sys --cov=locking/ locking/ --cov-report term-missing:skip-covered
 after_success:
