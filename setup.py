@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
-from pip.download import PipSession
+from pip._internal.req.req_file import parse_requirements
+from pip._internal.download import PipSession
 import locking
 
 from os import path
